@@ -32,7 +32,7 @@ You can install these dependencies using the following command:
 <TabItem value="ubuntu" label="Ubuntu">
 
 ```bash
-apt-get -y update && apt-get -y install libssl
+apt-get -y update && apt-get -y install libssl3
 ```
 
 </TabItem>
