@@ -114,7 +114,7 @@ impl IndexerState {
             sort_by_field: self.sort_by_field_opt.clone(),
             ..Default::default()
         };
-        let permit = INDEXER_PERMITS.acquire().await?;
+        let permit = ctx.protect_future(INDEXER_PERMITS.acquire()).await?;
         let index_builder = IndexBuilder::new()
             .settings(index_settings)
             .schema(schema)
@@ -128,7 +128,7 @@ impl IndexerState {
             ctx.kill_switch().clone(),
             permit,
         )?;
-        info!(split_id = %indexed_split.split_id, "new-split");
+        info!(split_id = %indexed_split.split_id, index=%self.index_id, "new-split");
         Ok(indexed_split)
     }
 
@@ -275,6 +275,7 @@ impl Actor for Indexer {
     }
 
     async fn on_empty(&mut self, ctx: &ActorContext<Self>) -> Result<(), ActorExitStatus> {
+        info!("on_empty");
         ctx.pause();
         Ok(())
     }
@@ -317,6 +318,7 @@ impl Handler<CommitTimeout> for Indexer {
         commit_timeout: CommitTimeout,
         ctx: &ActorContext<Self>,
     ) -> Result<(), ActorExitStatus> {
+        info!("timeout");
         if ctx.is_paused() {
             ctx.resume();
         } else {
